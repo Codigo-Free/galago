@@ -1,7 +1,9 @@
 import sys
+from pathlib import Path
 
 import pygame
 
+from .adapters.json_score_store import JsonScoreStore
 from .adapters.pygame_adapter.audio import PygameAudioPlayer
 from .adapters.pygame_adapter.clock import PygameClock
 from .adapters.pygame_adapter.input import PygameInputProvider
@@ -9,6 +11,8 @@ from .adapters.pygame_adapter.intro import run_intro
 from .adapters.pygame_adapter.renderer import PygameRenderer
 from .app.loop import GameApp
 from .constants import FPS, H, W
+
+SCORES_PATH = Path.home() / ".local" / "share" / "galago" / "scores.json"
 
 
 def main():
@@ -28,13 +32,14 @@ def main():
     audio.play_music()
     renderer = PygameRenderer(surface, fonts)
     input_provider = PygameInputProvider()
+    score_store = JsonScoreStore(SCORES_PATH)
 
     # --- Easter egg intro (flashes + retrato) ---
     if not run_intro(surface, clock, FPS):
         pygame.quit()
         sys.exit()
 
-    GameApp(renderer, input_provider, audio, clock, fps=FPS).run()
+    GameApp(renderer, input_provider, audio, clock, score_store, fps=FPS).run()
 
     pygame.quit()
     sys.exit()

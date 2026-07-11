@@ -190,3 +190,60 @@ class PygameRenderer:
         surface.blit(lv_t, (W - lv_t.get_width() - 20, 12))
 
         pygame.display.flip()
+
+    def render_high_scores(self, scores, t: int) -> None:
+        surface = self._surface
+        surface.fill(BG)
+        draw_stars(surface, self._stars)
+
+        title = self._f_big.render("HIGH SCORES", True, CYAN)
+        surface.blit(title, (W // 2 - title.get_width() // 2, 60))
+
+        start_y = 160
+        line_height = 34
+        if not scores:
+            empty = self._f_sm.render("Sin puntajes todavia", True, DIM)
+            surface.blit(empty, (W // 2 - empty.get_width() // 2, start_y))
+        else:
+            for i, entry in enumerate(scores):
+                line = f"{i + 1:>2}.  {entry.name:<3}  {entry.score:06d}   {entry.date}"
+                text = self._f_sm.render(line, True, WHITE)
+                surface.blit(text, (W // 2 - text.get_width() // 2, start_y + i * line_height))
+
+        blink = WHITE if t % 60 < 40 else DIM
+        hint = self._f_sm.render("ENTER / Q  volver", True, blink)
+        surface.blit(hint, (W // 2 - hint.get_width() // 2, H - 60))
+
+        pygame.display.flip()
+
+    def render_initials_entry(self, entry, score: int, t: int) -> None:
+        surface = self._surface
+        surface.fill(BG)
+        draw_stars(surface, self._stars)
+
+        title = self._f_med.render("NEW HIGH SCORE!", True, YELLOW)
+        sc = self._f_sm.render(f"Score: {score:06d}", True, WHITE)
+        surface.blit(title, (W // 2 - title.get_width() // 2, 180))
+        surface.blit(sc,    (W // 2 - sc.get_width()    // 2, 240))
+
+        blink = t % 40 < 20
+        spacing = 20
+        rendered_letters = []
+        total_width = 0
+        for i, letter in enumerate(entry.letters):
+            color = CYAN if (i == entry.cursor and blink) else WHITE
+            surf = self._f_big.render(letter, True, color)
+            rendered_letters.append(surf)
+            total_width += surf.get_width() + spacing
+        total_width -= spacing
+
+        x = W // 2 - total_width // 2
+        y = H // 2 - 20
+        for surf in rendered_letters:
+            surface.blit(surf, (x, y))
+            x += surf.get_width() + spacing
+
+        hint = self._f_sm.render("LEFT/RIGHT  move   UP/DOWN  letter   ENTER  confirm", True, DIM)
+        surface.blit(hint, (W // 2 - hint.get_width() // 2, H // 2 + 80))
+
+        pygame.display.flip()
