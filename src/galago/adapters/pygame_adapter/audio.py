@@ -3,9 +3,22 @@ import random
 
 import pygame
 
+from .intro import PROJECT_ROOT
 
 class PygameAudioPlayer:
     """Motor de sonido 8-bit/Chiptune procedural (sin assets de audio)."""
+
+    MUSIC_PATH = PROJECT_ROOT / "assets" / "sounds" / "freesound_community-8bit-music-for-game-68698.mp3"
+
+    def play_music(self):
+        if not pygame.mixer.get_init() or not self.MUSIC_PATH.exists():
+            return
+        try:
+            pygame.mixer.music.load(str(self.MUSIC_PATH))
+            pygame.mixer.music.set_volume(0.35)
+            pygame.mixer.music.play(loops=-1)
+        except Exception:
+            pass
 
     def __init__(self):
         self._sfx: dict[str, "pygame.mixer.Sound | None"] = {}

@@ -25,6 +25,7 @@ def main():
 
     clock = PygameClock()
     audio = PygameAudioPlayer()
+    audio.play_music()
     renderer = PygameRenderer(surface, fonts)
     input_provider = PygameInputProvider()
 
