@@ -46,3 +46,23 @@ def test_swoop_pattern_varies_by_variant(monkeypatch):
     assert p1_y_offset(1) == 140  # S ancha y rápida
     assert p1_y_offset(2) == 220  # picada angosta
     assert p1_y_offset(3) == 180  # variant % 3 vuelve a 0: el 3er boss repite el patrón clásico
+
+
+def test_final_boss_picks_pattern_randomly_ignoring_variant(monkeypatch):
+    monkeypatch.setattr(entities.random, "uniform", lambda a, b: a)
+    monkeypatch.setattr(entities.random, "choice", lambda seq: seq[0])
+
+    def p1_y_offset_with_forced_pick(forced_pattern):
+        monkeypatch.setattr(entities.random, "randint", lambda a, b: forced_pattern)
+        enemy = Enemy(0, 0, 'boss')
+        enemy.variant = 7  # 7 % 3 == 1, pero is_final debe ignorar esto
+        enemy.is_final = True
+        enemy.start_swoop()
+        p0, p1, _, _ = enemy._bezier
+        return p1[1] - p0[1]
+
+    # los 3 patrones deben quedar disponibles vía random.randint, sin
+    # importar que `variant % 3` fijaría siempre el patrón 1
+    assert p1_y_offset_with_forced_pick(0) == 180
+    assert p1_y_offset_with_forced_pick(1) == 140
+    assert p1_y_offset_with_forced_pick(2) == 220

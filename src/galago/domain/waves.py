@@ -5,6 +5,7 @@ from .entities import Enemy
 
 FORMATION_DROP = 22.0
 FINAL_WAVE = 100
+FINAL_BOSS_EXTRA_SIZE = 15  # además del tope normal de boss_size()
 
 
 def make_enemies(wave: int) -> list[Enemy]:
@@ -25,6 +26,9 @@ def _make_boss_wave(wave: int) -> list[Enemy]:
     boss.variant = boss_index(wave)
     boss.home_x = W / 2
     boss.x = float(boss.home_x)
+    if is_final_wave(wave):
+        boss.is_final = True
+        boss.size += FINAL_BOSS_EXTRA_SIZE
     return [boss]
 
 

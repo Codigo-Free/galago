@@ -37,6 +37,7 @@ class Enemy:
         self.swooping = False
         self.no_shoot = False  # True en etapas de bono: nunca dispara
         self.variant = 0  # 1..10 en bosses sucesivos: varía apariencia y patrón de vuelo
+        self.is_final = False  # True solo en el boss del stage 100: look único + vuelo aleatorio
         self._phase = 0.0
         self._ox = self._oy = 0.0
         self._bezier: tuple | None = None
@@ -60,7 +61,9 @@ class Enemy:
 
             # El patrón de vuelo varía con `variant` (0 para enemigos normales;
             # 1..10 para cada boss sucesivo) para que cada boss se sienta distinto.
-            pattern = self.variant % 3
+            # El boss final (`is_final`) elige un patrón al azar en cada
+            # picada, en vez de uno fijo — vuelo impredecible.
+            pattern = random.randint(0, 2) if self.is_final else self.variant % 3
             if pattern == 1:
                 sway_range, p1_y, p2_y = (220, 380), 140, 340   # S ancha y rápida
             elif pattern == 2:

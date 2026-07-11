@@ -57,6 +57,33 @@ def draw_boss(surf, x, y, size=20, variant=0):
         pygame.draw.line(surf, ORANGE, (x + offset, y - size), (x + offset + 6, y - size - 10 - i * 4), 2)
 
 
+def draw_final_boss(surf, x, y, size=65):
+    """Boss del stage 100: mezcla de boss (cuerpo/ojo/cuernos), bee (alas) y
+    drone (placas), en su versión más oscura y grande."""
+    body_color = (30, 0, 20)  # mas oscuro que cualquier variant de draw_boss
+    pygame.draw.ellipse(surf, body_color, (x - size, y - size, size * 2, size * 2))
+    pygame.draw.ellipse(surf, YELLOW, (x - 12, y - size // 2, 24, size))
+
+    # Alas estilo bee, a los costados del cuerpo
+    wing_w = size // 2
+    pygame.draw.ellipse(surf, ETYPE_COLOR['bee'], (x - size - wing_w, y - 10, wing_w, 20))
+    pygame.draw.ellipse(surf, ETYPE_COLOR['bee'], (x + size, y - 10, wing_w, 20))
+
+    # Placas estilo drone, arriba y abajo del cuerpo
+    plate = size // 3
+    for dy in (-size - plate // 2, size + plate // 2):
+        pts = [(x, y + dy - plate), (x + plate, y + dy), (x, y + dy + plate), (x - plate, y + dy)]
+        pygame.draw.polygon(surf, ETYPE_COLOR['drone'], pts)
+        pygame.draw.polygon(surf, CYAN, pts, 2)
+
+    # Ojo rojo grande y el máximo de cuernos
+    pygame.draw.circle(surf, ETYPE_COLOR['boss'], (x, y), 9)
+    for i in range(4):
+        offset = 8 + i * 12
+        pygame.draw.line(surf, ORANGE, (x - offset, y - size), (x - offset - 6, y - size - 12 - i * 4), 2)
+        pygame.draw.line(surf, ORANGE, (x + offset, y - size), (x + offset + 6, y - size - 12 - i * 4), 2)
+
+
 ETYPE_DRAW = {
     'drone': draw_drone,
     'bee':   draw_bee,
@@ -90,7 +117,9 @@ def _draw_bullet(surf, bullet):
 
 def _draw_enemy(surf, enemy):
     if enemy.alive:
-        if enemy.etype == 'boss':
+        if enemy.etype == 'boss' and enemy.is_final:
+            draw_final_boss(surf, int(enemy.x), int(enemy.y), enemy.size)
+        elif enemy.etype == 'boss':
             draw_boss(surf, int(enemy.x), int(enemy.y), enemy.size, enemy.variant)
         else:
             ETYPE_DRAW[enemy.etype](surf, int(enemy.x), int(enemy.y), enemy.size)

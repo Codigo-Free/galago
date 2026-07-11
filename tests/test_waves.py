@@ -82,6 +82,15 @@ def test_make_enemies_boss_wave_returns_single_scaled_boss():
     boss = enemies[0]
     assert boss.etype == 'boss'
     assert boss.size == waves.boss_size(20)
+    assert boss.is_final is False
+
+
+def test_make_enemies_final_wave_returns_bigger_marked_final_boss():
+    enemies = waves.make_enemies(wave=100)
+    boss = enemies[0]
+    assert boss.is_final is True
+    assert boss.size == waves.boss_size(100) + waves.FINAL_BOSS_EXTRA_SIZE
+    assert boss.size > waves.boss_size(90)  # mas grande que cualquier boss regular anterior
 
 
 def test_make_enemies_bonus_wave_returns_non_shooting_enemies():
