@@ -3,12 +3,13 @@ import random
 
 import pygame
 
-from .intro import PROJECT_ROOT
+from ...paths import resource_root
+
 
 class PygameAudioPlayer:
     """Motor de sonido 8-bit/Chiptune procedural (sin assets de audio)."""
 
-    MUSIC_PATH = PROJECT_ROOT / "assets" / "sounds" / "freesound_community-8bit-music-for-game-68698.mp3"
+    MUSIC_PATH = resource_root() / "assets" / "sounds" / "freesound_community-8bit-music-for-game-68698.mp3"
 
     def play_music(self):
         if not pygame.mixer.get_init() or not self.MUSIC_PATH.exists():

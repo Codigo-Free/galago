@@ -3,9 +3,7 @@ from pathlib import Path
 import pygame
 
 from ...constants import H, W
-
-# src/galago/adapters/pygame_adapter/intro.py -> raíz del proyecto
-PROJECT_ROOT = Path(__file__).resolve().parents[4]
+from ...paths import resource_root
 
 
 def _find_portrait() -> str | None:
@@ -17,7 +15,7 @@ def _find_portrait() -> str | None:
     for ext in ("png", "jpg", "jpeg", "webp"):
         candidates.append(home / f"portrait.{ext}")
     # Si no hay retrato del sistema/usuario, cae al logo versionado del proyecto.
-    candidates.append(PROJECT_ROOT / "assets" / "images" / "portrait.png")
+    candidates.append(resource_root() / "assets" / "images" / "portrait.png")
     for p in candidates:
         if p.exists():
             return str(p)

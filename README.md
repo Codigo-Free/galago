@@ -27,6 +27,17 @@ pip install pygame
 python galago.py
 ```
 
+### Prebuilt executables
+
+Standalone Windows/Linux executables (no Python or pygame install required) are built automatically for tagged releases — see the [Releases page](https://github.com/Codigo-Free/galago/releases). To build one yourself:
+
+```bash
+pip install -e . pyinstaller
+pyinstaller galago.spec
+```
+
+The result is a single-file executable at `dist/galago` (Linux) or `dist/galago.exe` (Windows) — built on the OS you're targeting, PyInstaller doesn't cross-compile.
+
 ## Controls
 
 | Action | Keys |
