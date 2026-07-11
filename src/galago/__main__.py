@@ -1,3 +1,4 @@
+import argparse
 import sys
 from pathlib import Path
 
@@ -17,6 +18,13 @@ SCORES_PATH = Path.home() / ".local" / "share" / "galago" / "scores.json"
 
 def main():
     """Composition root: crea pygame + los adaptadores concretos y arranca el juego."""
+    parser = argparse.ArgumentParser(description="Galago")
+    parser.add_argument(
+        "--wave", type=int, default=1,
+        help="Stage inicial al arrancar una partida (util para probar bonos/boss sin jugar desde el 1)",
+    )
+    args = parser.parse_args()
+
     pygame.init()
     surface = pygame.display.set_mode((W, H))
     pygame.display.set_caption("HarnessOS — Galago")
@@ -39,7 +47,7 @@ def main():
         pygame.quit()
         sys.exit()
 
-    GameApp(renderer, input_provider, audio, clock, score_store, fps=FPS).run()
+    GameApp(renderer, input_provider, audio, clock, score_store, fps=FPS, start_wave=args.wave).run()
 
     pygame.quit()
     sys.exit()

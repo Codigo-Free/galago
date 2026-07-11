@@ -35,18 +35,31 @@ def draw_bee(surf, x, y, size=15):
     pygame.draw.circle(surf, WHITE, (x, y), 5)
 
 
-def draw_boss(surf, x, y, size=20):
-    pygame.draw.ellipse(surf, ETYPE_COLOR['boss'], (x - size, y - size, size * 2, size * 2))
+def draw_boss(surf, x, y, size=20, variant=0):
+    # `variant` (0 = decorativo/normal, 1..10 = boss sucesivos) va oscureciendo
+    # el color, poniendo el ojo rojo, y sumando pares de cuernos.
+    darkness = min(variant, 10) / 10.0
+    body_color = (
+        int(ETYPE_COLOR['boss'][0] * (1 - darkness) + 40 * darkness),
+        int(ETYPE_COLOR['boss'][1] * (1 - darkness)),
+        int(ETYPE_COLOR['boss'][2] * (1 - darkness) + 30 * darkness),
+    )
+    eye_color = ETYPE_COLOR['boss'] if variant >= 5 else WHITE
+
+    pygame.draw.ellipse(surf, body_color, (x - size, y - size, size * 2, size * 2))
     pygame.draw.ellipse(surf, YELLOW, (x - 12, y - size // 2, 24, size))
-    pygame.draw.circle(surf, WHITE, (x, y), 7)
-    pygame.draw.line(surf, ORANGE, (x - 8,  y - size), (x - 14, y - size - 10), 2)
-    pygame.draw.line(surf, ORANGE, (x + 8,  y - size), (x + 14, y - size - 10), 2)
+    pygame.draw.circle(surf, eye_color, (x, y), 7)
+
+    horn_pairs = 1 + variant // 3
+    for i in range(horn_pairs):
+        offset = 8 + i * 10
+        pygame.draw.line(surf, ORANGE, (x - offset, y - size), (x - offset - 6, y - size - 10 - i * 4), 2)
+        pygame.draw.line(surf, ORANGE, (x + offset, y - size), (x + offset + 6, y - size - 10 - i * 4), 2)
 
 
 ETYPE_DRAW = {
     'drone': draw_drone,
     'bee':   draw_bee,
-    'boss':  draw_boss,
 }
 
 
@@ -77,7 +90,10 @@ def _draw_bullet(surf, bullet):
 
 def _draw_enemy(surf, enemy):
     if enemy.alive:
-        ETYPE_DRAW[enemy.etype](surf, int(enemy.x), int(enemy.y), enemy.size)
+        if enemy.etype == 'boss':
+            draw_boss(surf, int(enemy.x), int(enemy.y), enemy.size, enemy.variant)
+        else:
+            ETYPE_DRAW[enemy.etype](surf, int(enemy.x), int(enemy.y), enemy.size)
 
         if enemy.has_captured:
             draw_ship(surf, int(enemy.x), int(enemy.y) - 24)
@@ -165,12 +181,28 @@ class PygameRenderer:
         surface.blit(hint, (W // 2 - hint.get_width() // 2, H // 2 + 60))
         pygame.display.flip()
 
-    def render_wave_banner(self, wave: int) -> None:
+    def render_wave_banner(self, wave: int, label: str | None = None) -> None:
         surface = self._surface
         surface.fill(BG)
         draw_stars(surface, self._stars)
-        txt = self._f_big.render(f"WAVE  {wave}", True, CYAN)
+        text = label if label is not None else f"WAVE  {wave}"
+        txt = self._f_big.render(text, True, CYAN)
         surface.blit(txt, (W // 2 - txt.get_width() // 2, H // 2 - 40))
+        pygame.display.flip()
+
+    def render_victory(self, score: int, t: int) -> None:
+        surface = self._surface
+        surface.fill(BG)
+        draw_stars(surface, self._stars)
+        pulse = 0.6 + 0.4 * abs(math.sin(t * 0.04))
+        title = self._f_big.render("YOU  WIN", True,
+                                    tuple(int(c * pulse) for c in YELLOW))
+        sc = self._f_sm.render(f"Final Score: {score:06d}", True, WHITE)
+        blink = WHITE if t % 60 < 40 else DIM
+        hint = self._f_sm.render("ENTER / Q  volver al titulo", True, blink)
+        surface.blit(title, (W // 2 - title.get_width() // 2, H // 2 - 80))
+        surface.blit(sc,    (W // 2 - sc.get_width()    // 2, H // 2))
+        surface.blit(hint,  (W // 2 - hint.get_width()  // 2, H // 2 + 60))
         pygame.display.flip()
 
     def render_playing(self, round_) -> None:

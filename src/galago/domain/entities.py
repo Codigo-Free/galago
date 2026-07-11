@@ -23,9 +23,11 @@ class Bullet:
 
 
 class Enemy:
-    def __init__(self, col, row, etype):
+    def __init__(self, col, row, etype, size_override: int | None = None):
         self.etype = etype
         self.pts, self.size = ETYPE_STATS[etype]
+        if size_override is not None:
+            self.size = size_override
         self.home_x = 90 + col * 66
         self.home_y = 100 + row * 52
         self.x = float(self.home_x)
@@ -33,6 +35,8 @@ class Enemy:
         self.alive = True
         self.bullets: list[Bullet] = []
         self.swooping = False
+        self.no_shoot = False  # True en etapas de bono: nunca dispara
+        self.variant = 0  # 1..10 en bosses sucesivos: varía apariencia y patrón de vuelo
         self._phase = 0.0
         self._ox = self._oy = 0.0
         self._bezier: tuple | None = None
@@ -53,10 +57,21 @@ class Enemy:
             self._phase = 0.0
             self._ox = self.x
             self._oy = self.y
-            sway = random.uniform(120, 220) * random.choice((-1, 1))
+
+            # El patrón de vuelo varía con `variant` (0 para enemigos normales;
+            # 1..10 para cada boss sucesivo) para que cada boss se sienta distinto.
+            pattern = self.variant % 3
+            if pattern == 1:
+                sway_range, p1_y, p2_y = (220, 380), 140, 340   # S ancha y rápida
+            elif pattern == 2:
+                sway_range, p1_y, p2_y = (40, 100), 220, 420    # picada angosta y directa
+            else:
+                sway_range, p1_y, p2_y = (120, 220), 180, 380   # patrón clásico
+
+            sway = random.uniform(*sway_range) * random.choice((-1, 1))
             p0 = (self.x, self.y)
-            p1 = (self.x + sway, self.y + 180)
-            p2 = (self.x - sway * 0.6, self.y + 380)
+            p1 = (self.x + sway, self.y + p1_y)
+            p2 = (self.x - sway * 0.6, self.y + p2_y)
             p3 = (self.x + random.uniform(-40, 40), H + 60)
             self._bezier = (p0, p1, p2, p3)
 
@@ -112,7 +127,7 @@ class Enemy:
         self.shoot_cd -= 1
         if self.shoot_cd <= 0:
             self.shoot_cd = random.randint(200, 600)
-            if self.alive and self.tractor_state == 0:
+            if self.alive and self.tractor_state == 0 and not self.no_shoot:
                 self.bullets.append(Bullet(int(self.x), int(self.y) + 12, bullet_speed, 'enemy'))
                 events.append('enemy_shoot')
 

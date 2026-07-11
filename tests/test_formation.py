@@ -47,3 +47,17 @@ def test_formation_ignores_dead_and_swooping_enemies():
     # posiciones nominales estén fuera de los límites
     assert f.dir == 1
     assert f.dy == 0.0
+
+
+def test_formation_does_not_drift_when_nobody_is_in_formation():
+    # Regresión: en una oleada con un solo enemigo (ej. stage boss), cuando
+    # ese enemigo sale a atacar (swooping=True) queda 0 en formación durante
+    # varios frames. dx no debe seguir avanzando sin control en ese lapso,
+    # o el enemigo se reacomoda lejísimos de la pantalla al volver.
+    f = Formation(speed=2.0, drop=22.0)
+    enemies = [make_enemy(W / 2, alive=True, swooping=True)]
+
+    for _ in range(200):
+        f.update(enemies)
+
+    assert f.dx == 0.0
