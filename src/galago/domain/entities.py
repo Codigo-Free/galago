@@ -38,6 +38,8 @@ class Enemy:
         self.no_shoot = False  # True en etapas de bono: nunca dispara
         self.variant = 0  # 1..10 en bosses sucesivos: varía apariencia y patrón de vuelo
         self.is_final = False  # True solo en el boss del stage 100: look único + vuelo aleatorio
+        self.hp = 1       # todos mueren de un impacto salvo que algo suba esto (ej. boss final)
+        self.max_hp = 1
         self._phase = 0.0
         self._ox = self._oy = 0.0
         self._bezier: tuple | None = None

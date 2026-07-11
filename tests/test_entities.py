@@ -23,6 +23,13 @@ def test_shooting_enemy_still_appends_bullets_when_not_no_shoot():
     assert 'enemy_shoot' in events
 
 
+def test_default_hp_is_one_hit_kill():
+    for etype in ('drone', 'bee', 'boss'):
+        enemy = Enemy(0, 0, etype)
+        assert enemy.hp == 1
+        assert enemy.max_hp == 1
+
+
 def test_size_override_replaces_default_etype_size():
     default = Enemy(0, 0, 'boss')
     scaled = Enemy(0, 0, 'boss', size_override=50)

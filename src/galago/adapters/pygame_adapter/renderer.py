@@ -115,6 +115,18 @@ def _draw_bullet(surf, bullet):
     pygame.draw.rect(surf, BULLET_COLOR[bullet.owner], (bullet.x - 2, int(bullet.y) - h // 2, 4, h))
 
 
+def _draw_health_bar(surf, enemy):
+    if enemy.max_hp <= 1:
+        return
+    bar_w, bar_h = 70, 7
+    x = int(enemy.x) - bar_w // 2
+    y = int(enemy.y) - enemy.size - 22
+    pygame.draw.rect(surf, DIM, (x, y, bar_w, bar_h))
+    fill_w = int(bar_w * max(0, enemy.hp) / enemy.max_hp)
+    fill_color = GREEN if enemy.hp > enemy.max_hp * 0.3 else RED
+    pygame.draw.rect(surf, fill_color, (x, y, fill_w, bar_h))
+
+
 def _draw_enemy(surf, enemy):
     if enemy.alive:
         if enemy.etype == 'boss' and enemy.is_final:
@@ -123,6 +135,8 @@ def _draw_enemy(surf, enemy):
             draw_boss(surf, int(enemy.x), int(enemy.y), enemy.size, enemy.variant)
         else:
             ETYPE_DRAW[enemy.etype](surf, int(enemy.x), int(enemy.y), enemy.size)
+
+        _draw_health_bar(surf, enemy)
 
         if enemy.has_captured:
             draw_ship(surf, int(enemy.x), int(enemy.y) - 24)
@@ -251,6 +265,12 @@ class PygameRenderer:
         surface.blit(sc_t, (20, 12))
         surface.blit(wv_t, (W // 2 - wv_t.get_width() // 2, 12))
         surface.blit(lv_t, (W - lv_t.get_width() - 20, 12))
+
+        if round_.screen_flash > 0.0:
+            flash = pygame.Surface((W, H))
+            flash.fill(WHITE)
+            flash.set_alpha(int(255 * round_.screen_flash))
+            surface.blit(flash, (0, 0))
 
         pygame.display.flip()
 

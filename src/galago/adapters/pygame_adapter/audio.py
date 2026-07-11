@@ -72,6 +72,8 @@ class PygameAudioPlayer:
         self._sfx['player_boom'] = self._make_noise(0.6, vol=0.6)
         self._sfx['capture'] = self._make_square_wave(180, 0.4, vol=0.4)
         self._sfx['powerup'] = self._make_square_wave(1200, 0.3, vol=0.4)
+        self._sfx['hit'] = self._make_square_wave(500, 0.05, vol=0.2)
+        self._sfx['boss_death'] = self._make_noise(1.0, vol=0.7)
 
     def play(self, name: str) -> None:
         snd = self._sfx.get(name)

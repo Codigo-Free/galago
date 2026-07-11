@@ -93,6 +93,29 @@ def test_make_enemies_final_wave_returns_bigger_marked_final_boss():
     assert boss.size > waves.boss_size(90)  # mas grande que cualquier boss regular anterior
 
 
+def test_make_enemies_final_wave_includes_initial_minions():
+    enemies = waves.make_enemies(wave=100)
+    assert len(enemies) == 1 + waves.INITIAL_MINIONS
+    minions = [e for e in enemies if not e.is_final]
+    assert len(minions) == waves.INITIAL_MINIONS
+    assert all(e.etype in ('drone', 'bee') for e in minions)
+    assert all(e.swooping for e in minions)  # ya entran atacando, no esperan quietos
+    assert all(e.max_hp == 1 for e in minions)  # los refuerzos mueren de un impacto, como siempre
+
+
+def test_final_boss_has_multiple_hit_points():
+    boss = waves.make_enemies(wave=100)[0]
+    assert boss.hp == waves.FINAL_BOSS_HP
+    assert boss.max_hp == waves.FINAL_BOSS_HP
+    assert boss.hp > 1
+
+
+def test_regular_bosses_still_die_in_one_hit():
+    for wave in (10, 20, 50, 90):
+        boss = waves.make_enemies(wave)[0]
+        assert boss.max_hp == 1
+
+
 def test_make_enemies_bonus_wave_returns_non_shooting_enemies():
     enemies = waves.make_enemies(wave=5)
     assert len(enemies) == 16

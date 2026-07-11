@@ -6,6 +6,10 @@ from .entities import Enemy
 FORMATION_DROP = 22.0
 FINAL_WAVE = 100
 FINAL_BOSS_EXTRA_SIZE = 15  # además del tope normal de boss_size()
+MINION_SPAWN_INTERVAL = 240  # 4s @60fps: cada cuánto el boss final invoca más refuerzos
+MAX_MINIONS = 6  # tope de refuerzos vivos a la vez
+INITIAL_MINIONS = 2  # refuerzos que ya están presentes desde el primer frame de la pelea
+FINAL_BOSS_HP = 10  # el único enemigo del juego que no muere de un solo impacto
 
 
 def make_enemies(wave: int) -> list[Enemy]:
@@ -26,10 +30,30 @@ def _make_boss_wave(wave: int) -> list[Enemy]:
     boss.variant = boss_index(wave)
     boss.home_x = W / 2
     boss.x = float(boss.home_x)
-    if is_final_wave(wave):
-        boss.is_final = True
-        boss.size += FINAL_BOSS_EXTRA_SIZE
-    return [boss]
+    if not is_final_wave(wave):
+        return [boss]
+
+    boss.is_final = True
+    boss.size += FINAL_BOSS_EXTRA_SIZE
+    boss.hp = FINAL_BOSS_HP
+    boss.max_hp = FINAL_BOSS_HP
+    enemies = [boss]
+    for _ in range(INITIAL_MINIONS):
+        minion = make_minion()
+        minion.start_swoop()
+        enemies.append(minion)
+    return enemies
+
+
+def make_minion() -> Enemy:
+    """Refuerzo (drone o bee) que el boss final invoca mientras sigue vivo."""
+    etype = random.choice(('drone', 'bee'))
+    minion = Enemy(0, 0, etype)
+    minion.home_x = random.uniform(80, W - 80)
+    minion.home_y = 60.0
+    minion.x = float(minion.home_x)
+    minion.y = float(minion.home_y)
+    return minion
 
 
 def _make_bonus_wave(wave: int) -> list[Enemy]:

@@ -13,6 +13,8 @@ from .formation import Formation
 from .entities import Player
 
 FLOOR_Y = H - 50
+BOSS_DEATH_SEQUENCE_FRAMES = 90  # 1.5s @60fps de respiro antes de pasar a 'next_wave'
+BOSS_DEATH_FLASH_STEP = 1.0 / 45  # el destello se apaga en ~45 frames (0.75s)
 
 
 class GameRound:
@@ -31,6 +33,9 @@ class GameRound:
             self.bullet_speed = waves.bullet_speed(wave)
         self.swoop_cd = waves.initial_swoop_cooldown()
         self.explosions: list[Explosion] = []
+        self._minion_spawn_cd = waves.MINION_SPAWN_INTERVAL
+        self.screen_flash = 0.0  # 0.0-1.0: intensidad del destello de pantalla, decae solo
+        self._victory_delay = 0  # frames de respiro tras el golpe final antes de 'next_wave'
 
     def step(self, input_state) -> tuple[list[str], str | None]:
         """Avanza un frame. Devuelve (eventos_de_sonido, señal) donde señal
@@ -63,6 +68,8 @@ class GameRound:
                 self.swoop_cd = waves.next_swoop_cooldown(self.wave)
             self._choose_attack()
 
+        self._maybe_spawn_minion()
+
         for e in self.enemies:
             events += e.update(self.formation.dx, self.formation.dy, bullet_speed=self.bullet_speed)
 
@@ -77,8 +84,15 @@ class GameRound:
 
         if self.player.lives <= 0:
             return events, 'dead'
+
         if all(not e.alive for e in self.enemies):
-            return events, 'next_wave'
+            if self._victory_delay > 0:
+                self._victory_delay -= 1
+            else:
+                return events, 'next_wave'
+
+        if self.screen_flash > 0.0:
+            self.screen_flash = max(0.0, self.screen_flash - BOSS_DEATH_FLASH_STEP)
 
         for ex in self.explosions:
             ex.update()
@@ -100,11 +114,39 @@ class GameRound:
         else:
             random.choice(cands).start_swoop()
 
+    def _maybe_spawn_minion(self):
+        # Mientras el boss final siga vivo, invoca refuerzos periódicamente
+        # (hasta un tope) para que no baste con un solo disparo al boss para
+        # terminar la pelea. Deja de invocar en cuanto el boss muere; los
+        # refuerzos que ya estén vivos igual hay que limpiarlos para ganar.
+        if not any(e.is_final and e.alive for e in self.enemies):
+            return
+        self._minion_spawn_cd -= 1
+        if self._minion_spawn_cd > 0:
+            return
+        self._minion_spawn_cd = waves.MINION_SPAWN_INTERVAL
+        active_minions = sum(1 for e in self.enemies if not e.is_final and e.alive)
+        if active_minions < waves.MAX_MINIONS:
+            minion = waves.make_minion()
+            minion.start_swoop()
+            self.enemies.append(minion)
+
     def _resolve_player_bullets(self) -> list[str]:
         events: list[str] = []
         for pb in self.player.bullets[:]:
             for e in self.enemies:
                 if player_bullet_hits_enemy(pb, e):
+                    if pb in self.player.bullets:
+                        self.player.bullets.remove(pb)
+                    e.hp -= 1
+
+                    if e.hp > 0:
+                        # Encajó el golpe pero le queda vida (solo le pasa al
+                        # boss final) — chispazo chico, sigue vivo, no suma score.
+                        events.append('hit')
+                        self.explosions.append(Explosion(int(e.x), int(e.y), 4.0, 16.0, e.etype))
+                        break
+
                     e.alive = False
                     self.player.score += e.pts
 
@@ -113,13 +155,36 @@ class GameRound:
                         self.player.is_dual = True
                         events.append('powerup')
                         self.explosions.append(Explosion(int(e.x), int(e.y), 10.0, 70.0, 'rescue'))
+
+                    if e.is_final:
+                        events += self._trigger_boss_death_sequence(e)
                     else:
                         events.append('boom')
-
-                    if pb in self.player.bullets:
-                        self.player.bullets.remove(pb)
-                    self.explosions.append(Explosion(int(e.x), int(e.y), 4.0, 32.0, e.etype))
+                        self.explosions.append(Explosion(int(e.x), int(e.y), 4.0, 32.0, e.etype))
                     break
+        return events
+
+    def _trigger_boss_death_sequence(self, boss) -> list[str]:
+        """El golpe final al boss del stage 100: destello de pantalla, varias
+        explosiones grandes, arrasa cualquier refuerzo que siga en pie (con
+        su propia explosión y puntaje), y da un respiro antes de 'next_wave'
+        para que la secuencia se vea completa antes de cortar a la victoria."""
+        events = ['boss_death']
+        self.screen_flash = 1.0
+        self._victory_delay = BOSS_DEATH_SEQUENCE_FRAMES
+
+        for _ in range(5):
+            ox = boss.x + random.uniform(-40, 40)
+            oy = boss.y + random.uniform(-40, 40)
+            self.explosions.append(Explosion(int(ox), int(oy), 4.0, random.uniform(30, 60), 'boss'))
+
+        for other in self.enemies:
+            if other is not boss and other.alive:
+                other.alive = False
+                self.player.score += other.pts
+                self.explosions.append(Explosion(int(other.x), int(other.y), 4.0, 32.0, other.etype))
+                events.append('boom')
+
         return events
 
     def _resolve_enemy_bullets(self) -> list[str]:
@@ -150,6 +215,7 @@ class BonusRound:
         self._pending = waves.make_enemies(wave)  # todavía no lanzados
         self.enemies: list = []                    # ya lanzados / en vuelo
         self.explosions: list[Explosion] = []
+        self.screen_flash = 0.0  # nunca se usa acá; existe para que render_playing lo lea sin casos especiales
         self._t = 0
 
     def step(self, input_state) -> tuple[list[str], str | None]:
