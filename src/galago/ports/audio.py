@@ -1,0 +1,6 @@
+from typing import Protocol
+
+
+class AudioPlayer(Protocol):
+    def play(self, name: str) -> None:
+        ...
