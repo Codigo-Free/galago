@@ -126,8 +126,8 @@ class PygameRenderer:
         draw_stars(surface, self._stars)
 
         pulse = 0.6 + 0.4 * abs(math.sin(t * 0.04))
-        title = self._f_big.render("HARNESS  OS", True, CYAN)
-        sub = self._f_med.render("G  A  L  A  G  A", True,
+        title = self._f_big.render("HarnessOS", True, CYAN)
+        sub = self._f_med.render("G  A  L  A  G  O", True,
                                   tuple(int(c * pulse) for c in YELLOW))
         blink = WHITE if t % 60 < 40 else DIM
         hint = self._f_sm.render("PRESS  ENTER  TO  PLAY  /  Q  QUIT", True, blink)
