@@ -1,5 +1,7 @@
 # Galago
 
+![Galago](portrait.png)
+
 A Galaga-style arcade shoot-'em-up written in Python with [pygame](https://www.pygame.org/), featuring the classic tractor-beam capture mechanic and a Tokyo Night color palette.
 
 ## Features

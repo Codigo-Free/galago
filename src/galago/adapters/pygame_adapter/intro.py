@@ -4,6 +4,9 @@ import pygame
 
 from ...constants import H, W
 
+# src/galago/adapters/pygame_adapter/intro.py -> raíz del proyecto
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
 
 def _find_portrait() -> str | None:
     candidates = [
@@ -13,6 +16,8 @@ def _find_portrait() -> str | None:
     home = Path.home() / ".local/share/harness/easter-egg"
     for ext in ("png", "jpg", "jpeg", "webp"):
         candidates.append(home / f"portrait.{ext}")
+    # Si no hay retrato del sistema/usuario, cae al logo versionado en la raíz del proyecto.
+    candidates.append(PROJECT_ROOT / "portrait.png")
     for p in candidates:
         if p.exists():
             return str(p)
