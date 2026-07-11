@@ -132,6 +132,7 @@ class PygameRenderer:
         blink = WHITE if t % 60 < 40 else DIM
         hint = self._f_sm.render("PRESS  ENTER  TO  PLAY  /  Q  QUIT", True, blink)
         ctrl = self._f_sm.render("ARROWS / WASD  move      SPACE  shoot", True, DIM)
+        scores_hint = self._f_sm.render("H  high scores", True, DIM)
 
         surface.blit(title, (W // 2 - title.get_width() // 2, 180))
         surface.blit(sub,   (W // 2 - sub.get_width()   // 2, 268))
@@ -147,6 +148,7 @@ class PygameRenderer:
 
         surface.blit(hint, (W // 2 - hint.get_width() // 2, 470))
         surface.blit(ctrl, (W // 2 - ctrl.get_width() // 2, 508))
+        surface.blit(scores_hint, (W // 2 - scores_hint.get_width() // 2, 546))
 
         pygame.display.flip()
 
