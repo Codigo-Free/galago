@@ -6,9 +6,12 @@ A Galaga-style arcade shoot-'em-up written in Python with [pygame](https://www.p
 
 ## Features
 
-- Wave-based enemy formations (drones, bees, boss) with swooping attack patterns
+- 100 stages: wave-based enemy formations (drones, bees, boss) with swooping attack patterns, escalating difficulty
 - Boss tractor-beam capture/rescue mechanic — free your captured ship to unlock dual-fighter mode
-- Procedurally generated 8-bit chiptune sound effects (no audio assets required)
+- A solo boss fight every 10 stages, bigger/faster/uglier each time, culminating in a multi-hit final boss (stage 100) that summons reinforcements and ends in a proper death sequence — screen flash, multiple explosions, and a victory screen
+- Classic no-combat bonus stages every 10 stages (can't lose a life, just rack up points)
+- Local Top-10 leaderboard with arcade-style 3-letter initials entry, viewable from the title screen (`H`)
+- Procedurally generated 8-bit chiptune sound effects plus a looping background track (no external audio assets required for the SFX)
 - Bézier-curve enemy swoop paths and a scrolling starfield
 - Optional intro screen with a portrait easter egg
 
@@ -45,6 +48,8 @@ The result is a single-file executable at `dist/galago` (Linux) or `dist/galago.
 | Move | Arrow keys / WASD |
 | Shoot | Space / Up / W |
 | Confirm / Restart | Enter |
+| High scores (from title) | H |
+| Enter initials (on a new high score) | Arrows to pick letter/position, Enter to confirm |
 | Quit | Q / Esc |
 
 ## Architecture
