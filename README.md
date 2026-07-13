@@ -72,6 +72,10 @@ pytest
 
 The domain layer (`src/galago/domain/`) has no dependency on `pygame` and its tests run even without `pygame` installed — that's what proves the decoupling actually holds.
 
+## Support this project
+
+If you'd like to support ongoing development, you can sponsor via [GitHub Sponsors](https://github.com/sponsors/Codigo-Free).
+
 ## Credits
 
 Construido en [HarnessOS](https://github.com/Codigo-Free/HarnessOS) con VS Code y Claude, por efrasoft@gmail.com.
